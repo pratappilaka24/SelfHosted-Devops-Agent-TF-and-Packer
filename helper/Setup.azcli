@@ -58,6 +58,9 @@ echo "Creating SP for RBAC with name $servicePrincipalName, with role $roleName 
 sp=$(az ad sp create-for-rbac --name $servicePrincipalName \
 	--role $roleName\
 	--scopes /subscriptions/$subscriptionID)
+az role assignment create --assignee $sp \
+	--role "Storage Blob Data Contributor" \
+	--scope "/subscriptions/$subscriptionID
 echo "Service Principal : $sp" 
 
 echo "AZURE_SUBSCRIPTION : $subscriptionID"
