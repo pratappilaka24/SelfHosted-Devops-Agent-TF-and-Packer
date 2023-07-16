@@ -1,0 +1,86 @@
+# If you rework on this file in VS Code, 
+# its recommended to install Azure CLI tools extension
+#--------------
+# Configuration
+# -------------
+
+export SUBSCRIPTIONID=""
+export APPNAME="devopsagents"
+#Update above configuration
+
+export RG_NAME="rg_$APPNAME"
+export RG_AGENTS_NAME="rg_agents_$APPNAME"
+export STORAGEACCT_NAME="sg$APPNAME$RANDOM"  # must be globally unique
+export LOCATION="australiaeast"
+export IMAGEGALLERYNAME="sig_$APPNAME"
+
+# Resource Group
+# --------------
+# Create a dedicated resource group
+# Configurable: name, location
+az account set --name $SUBSCRIPTIONID
+
+az group create \
+	--name $RG_NAME \
+	--location $LOCATION
+
+az group create \
+	--name $RG_AGENTS_NAME \
+	--location $LOCATION
+
+# Storage Account
+# ---------------
+# This holds your actual Terraform state file
+# Note: we explicitly disable public access.
+
+az storage account create \
+	--name $STORAGEACCT_NAME \
+	--resource-group $RG_NAME \
+	--kind StorageV2 \
+	--sku Standard_LRS \
+	--https-only true \
+	--allow-blob-public-access false \
+	--tags "application=adoPackerImage"
+
+#Creating Shared Image Gallery
+az sig create --resource-group $RG_NAME \
+ --gallery-name $IMAGEGALLERYNAME
+
+#Creating Service principal
+let "randomIdentifier=$RANDOM*$RANDOM"  
+servicePrincipalName="sp-"$APPNAME"-$randomIdentifier"
+roleName="Contributor"
+subscriptionID=$(az account show --query id -o tsv)
+# Verify the ID of the active subscription
+echo "Service principalname : $servicePrincipalName"
+echo "Using subscription ID : $subscriptionID"
+echo "Creating SP for RBAC with name $servicePrincipalName, with role $roleName and in scopes /subscriptions/$subscriptionID/resourceGroups/$resourceGroup"
+sp=$(az ad sp create-for-rbac --name $servicePrincipalName \
+	--role $roleName\
+	--scopes /subscriptions/$subscriptionID)
+echo "Service Principal : $sp" 
+
+echo "AZURE_SUBSCRIPTION : $subscriptionID"
+
+# Storage Account Name 
+echo "AZURE_STORAGE_ACCOUNT : $STORAGEACCT_NAME"
+
+# Resource group name 
+echo "AZURE_RESOURCE_GROUP : $RG_NAME"
+
+echo "AZURE_AGENTS_RESOURCE_GROUP : $RG_AGENTS_NAME"
+
+echo "AZURE_LOCATION : $LOCATION"
+
+echo "CLIENT_ID,  CLIENT_SECRET, AZURE_TENANT  : $sp"
+
+echo "BUILD_AGENT_VNET_NAME : $null"
+echo "BUILD_AGENT_VNET_RESOURCE_GROUP : $null"
+echo "BUILD_AGENT_SUBNET_NAME : $null"
+echo "RUN_VALIDATION_FLAG : $false"
+echo "GALLERY_NAME : $IMAGEGALLERYNAME"
+echo "GALLERY_RESOURCE_GROUP : $RG_NAME"
+echo "VMSS_Windows2019 : w2019-devopsagnet-ae-01,w2019-devopsagnet-ae-02,w2019-devopsagnet-ae-03"
+echo "VMSS_Windows2022 : w2024-devopsagnet-ae-01,w2024-devopsagnet-ae-02,w2024-devopsagnet-ae-03"
+echo "VMSS_Ubuntu2004 : u2004-devopsagnet-ae-01,u2004-devopsagnet-ae-02,u2004-devopsagnet-ae-03"
+echo "VMSS_Ubuntu2204 : u2204-devopsagnet-ae-01,u2204-devopsagnet-ae-02,u2204-devopsagnet-ae-03"
