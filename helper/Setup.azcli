@@ -54,16 +54,24 @@ subscriptionID=$(az account show --query id -o tsv)
 # Verify the ID of the active subscription
 echo "Service principalname : $servicePrincipalName"
 echo "Using subscription ID : $subscriptionID"
-echo "Creating SP for RBAC with name $servicePrincipalName, with role $roleName and in scopes /subscriptions/$subscriptionID/resourceGroups/$resourceGroup"
+echo "Creating SP for RBAC with name $servicePrincipalName, with role $roleName and in scopes /subscriptions/$SUBSCRIPTIONID"
 sp=$(az ad sp create-for-rbac --name $servicePrincipalName \
 	--role $roleName\
-	--scopes /subscriptions/$subscriptionID)
-az role assignment create --assignee $sp \
-	--role "Storage Blob Data Contributor" \
-	--scope "/subscriptions/$subscriptionID
+	--scopes /subscriptions/$SUBSCRIPTIONID)
+
+roleName="Storage Blob Data Contributor"
+echo "Creating SP for RBAC with name $servicePrincipalName, with role $roleName and in scopes /subscriptions/$SUBSCRIPTIONID"
+az ad sp create-for-rbac --name $servicePrincipalName \
+	--role "$roleName"\
+	--scopes /subscriptions/$SUBSCRIPTIONID
+
+echo "******************************************************************************"
+echo "******************************************************************************"
+echo " "
+echo "Get values of AZURE_TENANT, CLIENT_ID, CLIENT_SECRET from SPN details below"
 echo "Service Principal : $sp" 
 
-echo "AZURE_SUBSCRIPTION : $subscriptionID"
+echo "AZURE_SUBSCRIPTION : $SUBSCRIPTIONID"
 
 # Storage Account Name 
 echo "AZURE_STORAGE_ACCOUNT : $STORAGEACCT_NAME"
@@ -83,7 +91,10 @@ echo "BUILD_AGENT_SUBNET_NAME : $null"
 echo "RUN_VALIDATION_FLAG : $false"
 echo "GALLERY_NAME : $IMAGEGALLERYNAME"
 echo "GALLERY_RESOURCE_GROUP : $RG_NAME"
-echo "VMSS_Windows2019 : w2019-devopsagnet-ae-01,w2019-devopsagnet-ae-02,w2019-devopsagnet-ae-03"
-echo "VMSS_Windows2022 : w2024-devopsagnet-ae-01,w2024-devopsagnet-ae-02,w2024-devopsagnet-ae-03"
-echo "VMSS_Ubuntu2004 : u2004-devopsagnet-ae-01,u2004-devopsagnet-ae-02,u2004-devopsagnet-ae-03"
-echo "VMSS_Ubuntu2204 : u2204-devopsagnet-ae-01,u2204-devopsagnet-ae-02,u2204-devopsagnet-ae-03"
+echo "VMSS_Windows2019 : w2019-devopsagnet-ae-01"
+echo "VMSS_Windows2022 : w2024-devopsagnet-ae-01"
+echo "VMSS_Ubuntu2004 : u2004-devopsagnet-ae-01"
+echo "VMSS_Ubuntu2204 : u2204-devopsagnet-ae-01"
+echo " "
+echo "******************************************************************************"
+echo "******************************************************************************"
